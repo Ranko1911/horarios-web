@@ -1,0 +1,59 @@
+name: Run Horarios Project
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-and-run:
+    runs-on: ubuntu-latest
+    env:
+      NODE_VERSION: 20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      # =====================
+      # Backend
+      # =====================
+      - name: Install backend dependencies
+        working-directory: ./backend
+        run: npm install
+
+      - name: Build backend (optional)
+        working-directory: ./backend
+        run: echo "Backend no requiere build"
+
+      # =====================
+      # Frontend
+      # =====================
+      - name: Install frontend dependencies
+        working-directory: ./frontend
+        run: npm install
+
+      - name: Build frontend
+        working-directory: ./frontend
+        run: npm run build
+
+      - name: Serve frontend (Static)
+        working-directory: ./frontend
+        run: |
+          npm install -g serve
+          serve -s dist -l 5000 &
+
+      # =====================
+      # Serve backend
+      # =====================
+      - name: Start backend
+        working-directory: ./backend
+        run: |
+          npm install -g concurrently
+          concurrently "npm start" "echo Backend corriendo" 
